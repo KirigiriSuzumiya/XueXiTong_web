@@ -42,6 +42,7 @@ selenium库
 pip install selenium
 ```
 
+谷歌浏览器及其驱动（chromedriver.exe）
 chromedriver.exe这是谷歌浏览器驱动，我上传的版本是101.0.4951.41。
 
 版本不对的话可以自己去[chromedriver.storage.googleapis.com/index.html](http://chromedriver.storage.googleapis.com/index.html)下个对的
