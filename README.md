@@ -31,23 +31,15 @@
 
 
 
-## 环境
-
-python3及以上
-
-selenium库
-
-```python
-#selenium安装
-pip install selenium
-```
-
-谷歌浏览器及其驱动（chromedriver.exe）
-chromedriver.exe这是谷歌浏览器驱动，我上传的版本是101.0.4951.41。
-
-版本不对的话可以自己去[chromedriver.storage.googleapis.com/index.html](http://chromedriver.storage.googleapis.com/index.html)下个对的
-
 ## 使用
+
+新加了pyinstaller导出的exe
+
+下载 *打包exe* 文件夹，直接双击就能用。
+
+P.S.不保证都能用，打包不太靠谱。
+
+------
 
 XueXiTong_web.py文件头部有三个变量
 
@@ -78,3 +70,23 @@ password = ''
    你的学习通密码
 
 **修改完成后直接运行就行，有什么问题看看命令行输出卡在哪里了。**
+
+
+
+## 环境
+
+python3及以上
+
+selenium库
+
+```python
+#selenium安装
+pip install selenium
+```
+
+谷歌浏览器及其驱动（chromedriver.exe）
+
+chromedriver.exe 我上传的版本是101.0.4951.41。
+
+版本不对的话可以自己去[chromedriver.storage.googleapis.com/index.html](http://chromedriver.storage.googleapis.com/index.html)下个对的
+
