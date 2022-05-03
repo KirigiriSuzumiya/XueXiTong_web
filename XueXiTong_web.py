@@ -98,7 +98,7 @@ while (True):
                 control_button.click()
             elif control_button.get_attribute("title") == "重播":
                 break
-    chrome.switch_to.parent_frame()
+        chrome.switch_to.parent_frame()
     chrome.switch_to.parent_frame()
     wait_time = random.randint(50, 150)
     wait_time = float(wait_time)/10
