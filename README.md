@@ -67,7 +67,7 @@ password = ''
 
    示例：
 
-   ![网页捕获_3-5-2022_15181_mooc1.chaoxing.com](新建 文本文档 (2).assets/网页捕获_3-5-2022_15181_mooc1.chaoxing.com.jpeg)
+   ![网页捕获_3-5-2022_15181_mooc1.chaoxing.com](README.assets/网页捕获_3-5-2022_15181_mooc1.chaoxing.com.jpeg)
 
 2. username
 

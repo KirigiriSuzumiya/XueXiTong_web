@@ -57,37 +57,43 @@ chrome.get(url)
 chrome.find_element(By.CLASS_NAME, "ipt-tel").send_keys(username)
 chrome.find_element(By.CLASS_NAME, "ipt-pwd").send_keys(password)
 chrome.find_element(By.ID, "loginBtn").click()
-wait = WebDriverWait(chrome, 100)
+wait = WebDriverWait(chrome, 10000)
 wait.until(EC.title_is("学习进度页面"))
 print("登陆成功！")
 while (True):
-    wait.until(EC.presence_of_all_elements_located)
-    chrome.refresh()
-    wait.until(EC.presence_of_all_elements_located)
+    wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "orange")))
     task_point = chrome.find_element(By.CLASS_NAME, "orange")
     task_point.click()
-    wait.until(EC.presence_of_all_elements_located)
-    wait.until(EC.presence_of_element_located((By.ID, "dct2")))
+    wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'h1')))
     print("章节标题：", chrome.find_element(By.TAG_NAME, 'h1').text)
     # 完成视频任务点
     chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
     try:
         chrome.find_element(By.CLASS_NAME, "ans-job-finished")
     except:
-        print("开始播放视频")
         chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
-        element = chrome.find_element(By.ID, 'ext-comp-1041')
-        chrome.execute_script("""
-        var element = arguments[0];
-        element.parentNode.removeChild(element);
-        """, element)
-        element = chrome.find_element(By.ID, 'ext-comp-1042')
-        chrome.execute_script("""
-        var element = arguments[0];
-        element.parentNode.removeChild(element);
-        """, element)
+        try:
+            wait_flow = WebDriverWait(chrome, 2)
+            wait_flow.until(EC.presence_of_all_elements_located((By.ID, 'ext-comp-1041')))
+            element = chrome.find_element(By.ID, 'ext-comp-1041')
+            chrome.execute_script("""
+            var element = arguments[0];
+            element.parentNode.removeChild(element);
+            """, element)
+            wait_flow.until(EC.presence_of_all_elements_located((By.ID, 'ext-comp-1042')))
+            element = chrome.find_element(By.ID, 'ext-comp-1042')
+            chrome.execute_script("""
+            var element = arguments[0];
+            element.parentNode.removeChild(element);
+            """, element)
+            print("弹窗题目已屏蔽！")
+        except:
+            print("未发现有弹窗题目！")
+            pass
         chrome.execute_script("window.focus();")
+        wait.until(EC.presence_of_all_elements_located((By.XPATH, "//button[@class='vjs-big-play-button']")))
         chrome.find_element(By.XPATH, "//button[@class='vjs-big-play-button']").click()
+        print("开始播放视频")
         while True:
             wait_video = WebDriverWait(chrome, 10000)
             wait_video.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "vjs-paused")))
@@ -100,23 +106,23 @@ while (True):
                 break
         chrome.switch_to.parent_frame()
     chrome.switch_to.parent_frame()
-    wait_time = random.randint(50, 150)
+    wait_time = random.randint(50, 100)
     wait_time = float(wait_time)/10
     print("视频点已完成！冷却%.2f秒后进入章节测试！" % wait_time)
+    sleep(wait_time)
     # 完成单元测试
+    wait.until(EC.presence_of_all_elements_located((By.ID, "dct2")))
     chrome.find_element(By.ID, "dct2").click()
     chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
     chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
     chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
-    wait.until(EC.presence_of_element_located((By.XPATH, "//div[@class='ZyTop']")))
+    wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='ZyTop']//span")))
     if chrome.find_element(By.XPATH, "//div[@class='ZyTop']//span").text == "已完成":
-        wait.until(EC.presence_of_all_elements_located)
-        chrome.back()
-        wait.until(EC.presence_of_all_elements_located)
-        chrome.back()
-        wait.until(EC.presence_of_all_elements_located)
-        chrome.back()
-        wait.until(EC.presence_of_all_elements_located)
+        chrome.switch_to.parent_frame()
+        chrome.switch_to.parent_frame()
+        chrome.switch_to.parent_frame()
+        wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
+        chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
         print("该章节测试已提交，不用查题！")
         continue
     workid = chrome.find_element(By.ID, "oldWorkId").get_attribute("value")
@@ -152,15 +158,10 @@ while (True):
     print("该章节题目已答完！冷却%.2f秒后提交！"% wait_time)
     chrome.find_element(By.CLASS_NAME, 'Btn_blue_1').click()
     wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class='bluebtn ']")))
-    print(chrome.find_element(By.XPATH, "//a[@class='bluebtn ']").text)
     sleep(wait_time)
     chrome.find_element(By.XPATH, "//a[@class='bluebtn ']").click()
-    wait.until(EC.presence_of_all_elements_located)
-    chrome.back()
-    wait.until(EC.presence_of_all_elements_located)
-    chrome.back()
-    wait.until(EC.presence_of_all_elements_located)
-    chrome.back()
-    wait.until(EC.presence_of_all_elements_located)
-
-# question_resource("222994175", "eafc32b4eacf4932957b618bfb38fb63")
+    chrome.switch_to.parent_frame()
+    chrome.switch_to.parent_frame()
+    chrome.switch_to.parent_frame()
+    wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
+    chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
