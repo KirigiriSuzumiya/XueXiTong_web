@@ -132,7 +132,7 @@ while (True):
     task_point.click()
     wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'h1')))
     print("章节标题：", chrome.find_element(By.TAG_NAME, 'h1').text)
-    if chrome.find_element(By.TAG_NAME, 'h1').text == "章节测试":
+    if chrome.find_element(By.TAG_NAME, 'h1').text == "章节测验":
         chapter_test()
         continue
     # 完成视频任务点
