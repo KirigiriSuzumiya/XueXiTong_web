@@ -109,33 +109,10 @@ def chapter_test():
     chrome.switch_to.parent_frame()
     chrome.switch_to.parent_frame()
     chrome.switch_to.parent_frame()
-    wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
-    chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
 
 
-# 以下是视频播放及页面切换
-LOGGER.setLevel(logging.CRITICAL)
-options = webdriver.ChromeOptions()
-options.add_argument('-ignore-certificate-errors')
-options.add_argument('-ignore -ssl-errors')
-chrome = webdriver.Chrome(executable_path="chromedriver.exe", chrome_options=options)
-chrome.get(url)
-chrome.find_element(By.CLASS_NAME, "ipt-tel").send_keys(username)
-chrome.find_element(By.CLASS_NAME, "ipt-pwd").send_keys(password)
-chrome.find_element(By.ID, "loginBtn").click()
-wait = WebDriverWait(chrome, 10)
-wait.until(EC.title_is("学习进度页面"))
-print("登陆成功！")
-while (True):
-    wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "orange")))
-    task_point = chrome.find_element(By.CLASS_NAME, "orange")
-    task_point.click()
-    wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'h1')))
-    print("章节标题：", chrome.find_element(By.TAG_NAME, 'h1').text)
-    if chrome.find_element(By.TAG_NAME, 'h1').text == "章节测验":
-        chapter_test()
-        continue
-    # 完成视频任务点
+def video_play():
+    wait.until(EC.presence_of_element_located((By.TAG_NAME, "iframe")))
     chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
     try:
         chrome.find_element(By.CLASS_NAME, "ans-job-finished")
@@ -147,15 +124,15 @@ while (True):
             wait_flow.until(EC.presence_of_all_elements_located((By.ID, 'ext-comp-1041')))
             element = chrome.find_element(By.ID, 'ext-comp-1041')
             chrome.execute_script("""
-            var element = arguments[0];
-            element.parentNode.removeChild(element);
-            """, element)
+                var element = arguments[0];
+                element.parentNode.removeChild(element);
+                """, element)
             wait_flow.until(EC.presence_of_all_elements_located((By.ID, 'ext-comp-1042')))
             element = chrome.find_element(By.ID, 'ext-comp-1042')
             chrome.execute_script("""
-            var element = arguments[0];
-            element.parentNode.removeChild(element);
-            """, element)
+                var element = arguments[0];
+                element.parentNode.removeChild(element);
+                """, element)
             print("弹窗题目已屏蔽！")
         except:
             print("未发现有弹窗题目！")
@@ -179,15 +156,65 @@ while (True):
         chrome.switch_to.parent_frame()
     chrome.switch_to.parent_frame()
     wait_time = random.randint(50, 100)
-    wait_time = float(wait_time)/10
+    wait_time = float(wait_time) / 10
     print("视频点已完成！冷却%.2f秒后进入章节测试！" % wait_time)
     sleep(wait_time)
-    # 完成单元测试
-    try:
-        chrome.find_element(By.ID, "dct2").click()
-    except:
+
+
+# 以下是视频播放及页面切换
+LOGGER.setLevel(logging.CRITICAL)
+options = webdriver.ChromeOptions()
+options.add_argument('-ignore-certificate-errors')
+options.add_argument('-ignore -ssl-errors')
+chrome = webdriver.Chrome(executable_path="chromedriver.exe", chrome_options=options)
+chrome.get(url)
+chrome.find_element(By.CLASS_NAME, "ipt-tel").send_keys(username)
+chrome.find_element(By.CLASS_NAME, "ipt-pwd").send_keys(password)
+chrome.find_element(By.ID, "loginBtn").click()
+wait = WebDriverWait(chrome, 10)
+wait.until(EC.title_is("学习进度页面"))
+print("登陆成功！")
+while (True):
+    wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "orange")))
+    task_point = chrome.find_element(By.CLASS_NAME, "orange")
+    task_point.click()
+    wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'h1')))
+    print("章节标题：", chrome.find_element(By.TAG_NAME, 'h1').text)
+
+    # 完成章节测验单任务点
+    if chrome.find_element(By.TAG_NAME, 'h1').text == "章节测验":
+        print("页面状态：章节测验单任务点")
+        chapter_test()
         wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
         chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
-        print("该章节无章节测试！")
         continue
-    chapter_test()
+
+    # 完成tabtags多任务点
+    try:
+        tabtags = chrome.find_element(By.CLASS_NAME, "tabtags")
+        tabs = tabtags.find_elements(By.TAG_NAME, "span")
+        judge = 0
+        for tab in tabs:
+            if tab.text == "视频":
+                print("页面状态：tabtags多任务点")
+                print("切换到视频播放标签")
+                tab.click()
+                video_play()
+                judge = 1
+            elif tab.text == "章节测验":
+                print("页面状态：tabtags多任务点")
+                print("切换到章节测试标签")
+                tab.click()
+                chapter_test()
+                judge = 1
+        if judge == 1:
+            wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
+            chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
+            continue
+    except:
+        pass
+    # 完成视频单任务点
+    print("页面状态：视频单任务点")
+    video_play()
+    wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
+    chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
