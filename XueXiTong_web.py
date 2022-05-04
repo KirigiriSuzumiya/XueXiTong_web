@@ -5,16 +5,22 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import Keys
+import logging
+from selenium.webdriver.remote.remote_connection import LOGGER
 
 # 配置所刷课程的url和学习通的用户名密码
+# url = ''
+# username = ''
+# password = ''
+print("输入网址url：")
+url = input()
+print("输入学习通用户名")
+username = input()
+print("输入学习通密码")
+password = input()
 
-url = ''
-username = ''
-password = ''
 
-# 以下是执行部分
-
-
+# 以下是题目页的破解与答题
 def question_resource(courseid, workid):
     chrome_answer = webdriver.Chrome(executable_path="chromedriver.exe")
     chrome_answer.get("https://mooc1.chaoxing.com/api/selectWorkQuestion?workId=%s&courseId=%s" % (workid, courseid))
@@ -50,14 +56,74 @@ def get_answer(question_text):
     return answer
 
 
+def chapter_test():
+    chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
+    chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
+    chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
+    wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='ZyTop']//span")))
+    if chrome.find_element(By.XPATH, "//div[@class='ZyTop']//span").text == "已完成":
+        chrome.switch_to.parent_frame()
+        chrome.switch_to.parent_frame()
+        chrome.switch_to.parent_frame()
+        wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
+        chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
+        print("该章节测试已提交，不用查题！")
+        return
+    workid = chrome.find_element(By.ID, "oldWorkId").get_attribute("value")
+    courseid = chrome.find_element(By.ID, "courseId").get_attribute("value")
+    print("作业id：%s\t课程id：%s" % (workid, courseid))
+    answers = question_resource(courseid, workid)
+    qsts = chrome.find_elements(By.CLASS_NAME, 'TiMu')
+    count = 0
+    for qst in qsts:
+        qst = qst.find_elements_by_tag_name("li")
+        for answer in answers[count]:
+            if not answer:
+                print("未找到第%d题的答案！！！" % (count + 1))
+            elif answer[0] == 'A':
+                qst[0].click()
+                print("开始选择第%d题的答案：A" % (count + 1))
+            elif answer[0] == 'B':
+                qst[1].click()
+                print("开始选择第%d题的答案：B" % (count + 1))
+            elif answer[0] == 'C':
+                qst[2].click()
+                print("开始选择第%d题的答案：C" % (count + 1))
+            elif answer[0] == 'D':
+                qst[3].click()
+                print("开始选择第%d题的答案：D" % (count + 1))
+            elif answer[0] == '×':
+                qst[1].find_element(By.TAG_NAME, 'input').click()
+                print("开始选择第%d题的答案：×" % (count + 1))
+            elif answer[0] == '√':
+                qst[0].find_element(By.TAG_NAME, 'input').click()
+                print("开始选择第%d题的答案：√" % (count + 1))
+        count += 1
+    wait_time = random.randint(50, 150)
+    wait_time = float(wait_time) / 10
+    print("该章节题目已答完！冷却%.2f秒后提交！" % wait_time)
+    chrome.find_element(By.CLASS_NAME, 'Btn_blue_1').click()
+    wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class='bluebtn ']")))
+    sleep(wait_time)
+    chrome.find_element(By.XPATH, "//a[@class='bluebtn ']").click()
+    chrome.switch_to.parent_frame()
+    chrome.switch_to.parent_frame()
+    chrome.switch_to.parent_frame()
+    wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
+    chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
 
 
-chrome =webdriver.Chrome(executable_path="chromedriver.exe")
+# 以下是视频播放及页面切换
+LOGGER.setLevel(logging.CRITICAL)
+options = webdriver.ChromeOptions()
+options.add_argument('-ignore-certificate-errors')
+options.add_argument('-ignore -ssl-errors')
+chrome = webdriver.Chrome(executable_path="chromedriver.exe", chrome_options=options)
 chrome.get(url)
 chrome.find_element(By.CLASS_NAME, "ipt-tel").send_keys(username)
 chrome.find_element(By.CLASS_NAME, "ipt-pwd").send_keys(password)
 chrome.find_element(By.ID, "loginBtn").click()
-wait = WebDriverWait(chrome, 10000)
+wait = WebDriverWait(chrome, 10)
 wait.until(EC.title_is("学习进度页面"))
 print("登陆成功！")
 while (True):
@@ -66,6 +132,9 @@ while (True):
     task_point.click()
     wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'h1')))
     print("章节标题：", chrome.find_element(By.TAG_NAME, 'h1').text)
+    if chrome.find_element(By.TAG_NAME, 'h1').text == "章节测试":
+        chapter_test()
+        continue
     # 完成视频任务点
     chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
     try:
@@ -73,6 +142,7 @@ while (True):
     except:
         chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
         try:
+            # 屏蔽弹窗题目
             wait_flow = WebDriverWait(chrome, 2)
             wait_flow.until(EC.presence_of_all_elements_located((By.ID, 'ext-comp-1041')))
             element = chrome.find_element(By.ID, 'ext-comp-1041')
@@ -94,6 +164,8 @@ while (True):
         wait.until(EC.presence_of_all_elements_located((By.XPATH, "//button[@class='vjs-big-play-button']")))
         chrome.find_element(By.XPATH, "//button[@class='vjs-big-play-button']").click()
         print("开始播放视频")
+        sleep(3)
+        # 自动恢复播放
         while True:
             wait_video = WebDriverWait(chrome, 10000)
             wait_video.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "vjs-paused")))
@@ -111,57 +183,11 @@ while (True):
     print("视频点已完成！冷却%.2f秒后进入章节测试！" % wait_time)
     sleep(wait_time)
     # 完成单元测试
-    wait.until(EC.presence_of_all_elements_located((By.ID, "dct2")))
-    chrome.find_element(By.ID, "dct2").click()
-    chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
-    chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
-    chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
-    wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='ZyTop']//span")))
-    if chrome.find_element(By.XPATH, "//div[@class='ZyTop']//span").text == "已完成":
-        chrome.switch_to.parent_frame()
-        chrome.switch_to.parent_frame()
-        chrome.switch_to.parent_frame()
+    try:
+        chrome.find_element(By.ID, "dct2").click()
+    except:
         wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
         chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
-        print("该章节测试已提交，不用查题！")
+        print("该章节无章节测试！")
         continue
-    workid = chrome.find_element(By.ID, "oldWorkId").get_attribute("value")
-    courseid = chrome.find_element(By.ID, "courseId").get_attribute("value")
-    print("作业id：%s\t课程id：%s" % (workid, courseid))
-    answers = question_resource(courseid, workid)
-    qsts = chrome.find_elements(By.CLASS_NAME, 'TiMu')
-    count = 0
-    for qst in qsts:
-        qst = qst.find_elements_by_tag_name("li")
-        for answer in answers[count]:
-            if answer[0] == 'A':
-                qst[0].click()
-                print("开始选择第%d题的答案：A" % (count+1))
-            elif answer[0] == 'B':
-                qst[1].click()
-                print("开始选择第%d题的答案：B" % (count+1))
-            elif answer[0] == 'C':
-                qst[2].click()
-                print("开始选择第%d题的答案：C" % (count+1))
-            elif answer[0] == 'D':
-                qst[3].click()
-                print("开始选择第%d题的答案：D" % (count+1))
-            elif answer[0] == '×':
-                qst[1].find_element(By.TAG_NAME, 'input').click()
-                print("开始选择第%d题的答案：×" % (count+1))
-            elif answer[0] == '√':
-                qst[0].find_element(By.TAG_NAME, 'input').click()
-                print("开始选择第%d题的答案：√" % (count+1))
-        count += 1
-    wait_time = random.randint(50, 150)
-    wait_time = float(wait_time)/10
-    print("该章节题目已答完！冷却%.2f秒后提交！"% wait_time)
-    chrome.find_element(By.CLASS_NAME, 'Btn_blue_1').click()
-    wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class='bluebtn ']")))
-    sleep(wait_time)
-    chrome.find_element(By.XPATH, "//a[@class='bluebtn ']").click()
-    chrome.switch_to.parent_frame()
-    chrome.switch_to.parent_frame()
-    chrome.switch_to.parent_frame()
-    wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='goback']/a")))
-    chrome.find_element(By.XPATH, "//div[@class='goback']/a").click()
+    chapter_test()
