@@ -18,7 +18,11 @@ print("输入学习通用户名")
 username = input()
 print("输入学习通密码")
 password = input()
-
+print("自定义多标签任务点tag内容：不明白什么意思可以参阅README")
+print("输入视频点tag内容：")
+tag_video = input()
+print("输入章节测试点点tag内容：")
+tag_test = input()
 
 # 以下是题目页的破解与答题
 def question_resource(courseid, workid):
@@ -195,13 +199,13 @@ while (True):
         tabs = tabtags.find_elements(By.TAG_NAME, "span")
         judge = 0
         for tab in tabs:
-            if tab.text == "视频":
+            if tab.text == tag_video:
                 print("页面状态：tabtags多任务点")
                 print("切换到视频播放标签")
                 tab.click()
                 video_play()
                 judge = 1
-            elif tab.text == "章节测验":
+            elif tab.text == tag_test:
                 print("页面状态：tabtags多任务点")
                 print("切换到章节测试标签")
                 tab.click()
