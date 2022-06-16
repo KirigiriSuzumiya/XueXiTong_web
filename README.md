@@ -111,3 +111,8 @@ chromedriver.exe 我上传的版本是101.0.4951.41。
 
 版本不对的话可以自己去[chromedriver.storage.googleapis.com/index.html](http://chromedriver.storage.googleapis.com/index.html)下个对的
 
+## linux下的运行
+```bash
+nohup python3 -u XueXiTong_web.py "url" username password "视频" "章节测验" > out1.log 2>&1 &
+
+```
