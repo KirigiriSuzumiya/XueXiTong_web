@@ -1,38 +1,72 @@
 import random
 from time import sleep
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import Keys
 import logging
 from selenium.webdriver.remote.remote_connection import LOGGER
+import sys
+import threading
+from datetime import datetime, timedelta
 
-# 配置所刷课程的url和学习通的用户名密码
-# url = ''
-# username = ''
-# password = ''
-print("输入网址url：")
-url = input()
-print("输入学习通用户名")
-username = input()
-print("输入学习通密码")
-password = input()
+exitFlag = False
+
+# 配置所刷课程的url和学习通的用户名密码 - 控制台输入
+args = sys.argv
+url = args[1]
+username = args[2]
+password = args[3]
 print("自定义多标签任务点tag内容：不明白什么意思可以参阅README")
-print("输入视频点tag内容：")
-tag_video = input()
-print("输入章节测试点点tag内容：")
-tag_test = input()
+tag_video = args[4]
+tag_test = args[5]
+
+
+class myThread(threading.Thread):
+    def __init__(self, threadID, name, delay, duration):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.delay = delay
+        self.duration = duration
+
+    def run(self):
+        print("开始打印进度线程：" + self.name)
+        query_progress(self.name, self.delay, self.duration)
+        print("退出打印进度线程：" + self.name)
+
+
+def query_progress(thread_name, delay, duration):
+    global exitFlag
+    while True:
+        if exitFlag:
+            break
+        javascript_to_execute = "return document.getElementById('video_html5_api').currentTime"
+        current_time = chrome.execute_script(javascript_to_execute)
+        now_time = datetime.now()
+        print("[%s]:视频播放中:总时长：%s秒,当前进度:%s秒" % (
+            now_time.strftime("%Y-%m-%d %H:%M:%S"), duration, current_time))
+        sleep(delay)
+
 
 # 以下是题目页的破解与答题
 def question_resource(courseid, workid):
-    chrome_answer = webdriver.Chrome(executable_path="chromedriver.exe")
+    options = Options()
+    options.add_argument("headless")
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--disable-dev-shm-usage')
+    s = Service('chromedriver.exe')
+    chrome_answer = webdriver.Chrome(service=s, options=options)
     chrome_answer.get("https://mooc1.chaoxing.com/api/selectWorkQuestion?workId=%s&courseId=%s" % (workid, courseid))
     qsts = chrome_answer.find_elements(By.CLASS_NAME, 'TiMu')
     answers = []
     for qst in qsts:
-        qst = qst.find_element_by_tag_name("div")
-        qst = qst.find_element_by_tag_name("div")
+        qst = qst.find_element(By.TAG_NAME, 'div')
+        qst = qst.find_element(By.TAG_NAME, 'div')
         question_text = qst.text.replace('\n', '')
         print(question_text)
         answer = get_answer(question_text)
@@ -45,7 +79,13 @@ def get_answer(question_text):
     # get直接返回，不再等待界⾯加载完成
     desired_capabilities = DesiredCapabilities.CHROME
     desired_capabilities["pageLoadStrategy"] = "none"
-    chrome = webdriver.Chrome(executable_path="chromedriver.exe", desired_capabilities=desired_capabilities)
+    s = Service('chromedriver.exe')
+    options = Options()
+    options.add_argument("headless")
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--disable-dev-shm-usage')
+    chrome = webdriver.Chrome(service=s, desired_capabilities=desired_capabilities, options=options)
     chrome.get("https://cx.icodef.com/query.html?q=")
     wait = WebDriverWait(chrome, 100)
     wait.until(EC.presence_of_element_located((By.TAG_NAME, "input")))
@@ -80,7 +120,7 @@ def chapter_test():
     qsts = chrome.find_elements(By.CLASS_NAME, 'TiMu')
     count = 0
     for qst in qsts:
-        qst = qst.find_elements_by_tag_name("li")
+        qst = qst.find_elements(By.TAG_NAME, 'li')
         for answer in answers[count]:
             if not answer:
                 print("未找到第%d题的答案！！！" % (count + 1))
@@ -116,6 +156,7 @@ def chapter_test():
 
 
 def video_play():
+    global exitFlag
     wait.until(EC.presence_of_element_located((By.TAG_NAME, "iframe")))
     chrome.switch_to.frame(chrome.find_element(By.TAG_NAME, "iframe"))
     try:
@@ -144,8 +185,23 @@ def video_play():
         chrome.execute_script("window.focus();")
         wait.until(EC.presence_of_all_elements_located((By.XPATH, "//button[@class='vjs-big-play-button']")))
         chrome.find_element(By.XPATH, "//button[@class='vjs-big-play-button']").click()
-        print("开始播放视频")
+
         sleep(3)
+        javascript_to_execute = "return document.getElementById('video_html5_api').duration"
+        duration = chrome.execute_script(javascript_to_execute)
+        javascript_to_execute = "return document.getElementById('video_html5_api').currentTime"
+        current_time = chrome.execute_script(javascript_to_execute)
+        # javascript_to_execute = "document.getElementById('video_html5_api').playbackRate=16"
+        # chrome.execute_script(javascript_to_execute)
+        # 获取当前北京时间
+        now_time = datetime.now()
+        print("[%s]:开始播放视频:总时长：%s秒,当前进度:%s秒,预计完成时间:%s" % (
+            now_time.strftime("%Y-%m-%d %H:%M:%S"), duration, current_time,
+            now_time + timedelta(seconds=duration - current_time)))
+
+        exitFlag = False
+        thread1 = myThread(1, "Thread-1", 15, duration)
+        thread1.start()
         # 自动恢复播放
         while True:
             wait_video = WebDriverWait(chrome, 10000)
@@ -156,21 +212,28 @@ def video_play():
                 print("播放被暂停，继续播放")
                 control_button.click()
             elif control_button.get_attribute("title") == "重播":
+                exitFlag = True
                 break
         chrome.switch_to.parent_frame()
     chrome.switch_to.parent_frame()
     wait_time = random.randint(50, 100)
     wait_time = float(wait_time) / 10
     print("视频点已完成！冷却%.2f秒后进入章节测试！" % wait_time)
+    exitFlag = True
     sleep(wait_time)
 
 
 # 以下是视频播放及页面切换
 LOGGER.setLevel(logging.CRITICAL)
-options = webdriver.ChromeOptions()
+options = Options()
 options.add_argument('-ignore-certificate-errors')
 options.add_argument('-ignore -ssl-errors')
-chrome = webdriver.Chrome(executable_path="chromedriver.exe", chrome_options=options)
+# options.add_argument("headless") # 无头模式
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-gpu')
+options.add_argument('--disable-dev-shm-usage')
+s = Service('chromedriver.exe')
+chrome = webdriver.Chrome(service=s, options=options)
 chrome.get(url)
 chrome.find_element(By.CLASS_NAME, "ipt-tel").send_keys(username)
 chrome.find_element(By.CLASS_NAME, "ipt-pwd").send_keys(password)
