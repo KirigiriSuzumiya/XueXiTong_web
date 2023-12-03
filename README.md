@@ -1,7 +1,8 @@
 # XueXiTong
 学习通泛雅课程刷课工具。使用selenium+python，破解了最近更新的测试复制乱码。能够自动进行视频播放与章节测试搜题、提交。
 
-
+## 更新
+- 2023-12：因为我自己又要用了，所以修了些小问题，更新了下Chrome Driver版本并提高了泛用性。
 
 **求星~**
 
@@ -33,6 +34,18 @@
 
 ## 使用
 
+！！！！！前排注意！！！！！
+
+程序在输入完信息后闪退大概率是你的Chrome Driver版本和你Chrome浏览器的不一样！！！！
+
+### 谷歌浏览器驱动（chromedriver.exe）下载
+
+chromedriver.exe 我上传的版本是119.0.6045.105。
+
+版本不对的话可以自己去[chromedriver.storage.googleapis.com/index.html](http://chromedriver.storage.googleapis.com/index.html)下个对的
+
+更新：新版本的Chrome Driver在这里：[链接](https://googlechromelabs.github.io/chrome-for-testing/#stable)
+
 ### 如果你是个小白，只想摆烂
 
 新加了pyinstaller导出的exe
@@ -41,8 +54,7 @@
 
 P.S. 不保证都能用，打包不太靠谱。
 
-P.S.S 电脑里要装有谷歌Chrome浏览器！！！
-
+P.S.S 电脑里要装有谷歌Chrome浏览器打包且exe同目录要有chrome driver！！
 
 
 #### 一键运行.exe 使用说明：
@@ -104,10 +116,4 @@ selenium库
 #selenium安装
 pip install selenium
 ```
-
-谷歌浏览器及其驱动（chromedriver.exe）
-
-chromedriver.exe 我上传的版本是101.0.4951.41。
-
-版本不对的话可以自己去[chromedriver.storage.googleapis.com/index.html](http://chromedriver.storage.googleapis.com/index.html)下个对的
 

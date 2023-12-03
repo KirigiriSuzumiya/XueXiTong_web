@@ -9,9 +9,6 @@ import logging
 from selenium.webdriver.remote.remote_connection import LOGGER
 
 # 配置所刷课程的url和学习通的用户名密码
-# url = ''
-# username = ''
-# password = ''
 print("输入网址url：")
 url = input()
 print("输入学习通用户名")
@@ -125,18 +122,16 @@ def video_play():
         try:
             # 屏蔽弹窗题目
             wait_flow = WebDriverWait(chrome, 2)
-            wait_flow.until(EC.presence_of_all_elements_located((By.ID, 'ext-comp-1041')))
-            element = chrome.find_element(By.ID, 'ext-comp-1041')
-            chrome.execute_script("""
-                var element = arguments[0];
-                element.parentNode.removeChild(element);
-                """, element)
-            wait_flow.until(EC.presence_of_all_elements_located((By.ID, 'ext-comp-1042')))
-            element = chrome.find_element(By.ID, 'ext-comp-1042')
-            chrome.execute_script("""
-                var element = arguments[0];
-                element.parentNode.removeChild(element);
-                """, element)
+            wait_flow.until(EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@id, 'ext-comp-')]")))
+            elements = chrome.find_elements(By.XPATH, "//div[contains(@id, 'ext-comp-')]")
+            # print(elements)
+            for element_id in set([element.get_attribute("id") for element in elements]):
+                print(element_id+"removed!")
+                element = chrome.find_element(By.ID, element_id)
+                chrome.execute_script("""
+                    var element = arguments[0];
+                    element.parentNode.removeChild(element);
+                    """, element)
             print("弹窗题目已屏蔽！")
         except:
             print("未发现有弹窗题目！")
@@ -176,8 +171,9 @@ chrome.find_element(By.CLASS_NAME, "ipt-tel").send_keys(username)
 chrome.find_element(By.CLASS_NAME, "ipt-pwd").send_keys(password)
 chrome.find_element(By.ID, "loginBtn").click()
 wait = WebDriverWait(chrome, 10)
-wait.until(EC.title_is("学习进度页面"))
-print("登陆成功！")
+# wait.until(EC.title_is())
+wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "orange")))
+print("登陆成功！找到未完成任务点！")
 while (True):
     wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "orange")))
     task_point = chrome.find_element(By.CLASS_NAME, "orange")
